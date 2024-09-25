@@ -1,5 +1,13 @@
 {
   "expo": {
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(Weather App) to use your location."
+        }
+      ]
+    ],
     "name": "RealTimeWeather",
     "slug": "RealTimeWeather",
     "version": "1.0.0",
