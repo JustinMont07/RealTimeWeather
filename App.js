@@ -1,4 +1,4 @@
-import { ImageBackground } from "react-native";
+import { ImageBackground, Alert } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { s } from "./App.style";
 import { Home } from "./components/Home/Home";
@@ -52,6 +52,15 @@ export default function App() {
     setCity(cityResponse);
   }
 
+  async function fetchCoordsByCity(city) {
+    try {
+      const coordsResponse = await MeteoAPI.fetchCoordinatesByCity(city);
+      setCoordinates(coordsResponse);
+    } catch (err) {
+      Alert.alert("Invalid City");
+    }
+  }
+
   //Get coordinates from the User
   async function getUserCoordinates() {
     const { status } = await requestForegroundPermissionsAsync();
@@ -84,7 +93,13 @@ export default function App() {
                 initialRouteName="Home"
               >
                 <Stack.Screen name="Home">
-                  {() => <Home weather={weather} city={city} />}
+                  {() => (
+                    <Home
+                      weather={weather}
+                      city={city}
+                      onSubmitSearch={fetchCoordsByCity}
+                    />
+                  )}
                 </Stack.Screen>
                 <Stack.Screen name="Forecast" component={Forecast} />
               </Stack.Navigator>
