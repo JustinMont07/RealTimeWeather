@@ -5,21 +5,29 @@ import { Home } from "./components/Home/Home";
 import background from "./assets/background.png";
 import { useEffect, useState } from "react";
 import { MeteoAPI } from "./api/weather";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import {
   requestForegroundPermissionsAsync,
   getCurrentPositionAsync,
 } from "expo-location";
 import { useFonts } from "expo-font";
+import { Forecast } from "./components/Forecast/Forecast";
 
+const Stack = createNativeStackNavigator();
+const navTheme = {
+  colors: {
+    background: "transparent",
+  },
+};
 export default function App() {
   const [coordinates, setCoordinates] = useState();
   const [weather, setWeather] = useState();
+  const [city, setCity] = useState();
 
   const [isFontLoaded] = useFonts({
     "Alata-Regular": require("./assets/fonts/Alata-Regular.ttf"),
   });
-
-  console.log(isFontLoaded);
 
   useEffect(() => {
     getUserCoordinates();
@@ -28,14 +36,20 @@ export default function App() {
   useEffect(() => {
     if (coordinates) {
       fetchWeatherFromCoordinates(coordinates);
+      fetchCityFromCoordinates(coordinates);
     }
   }, [coordinates]);
-  console.log(weather);
+
   async function fetchWeatherFromCoordinates(coordinates) {
     const weatherResponse = await MeteoAPI.fetchWeatherFromCoordinates(
       coordinates
     );
     setWeather(weatherResponse);
+  }
+
+  async function fetchCityFromCoordinates(coordinates) {
+    const cityResponse = await MeteoAPI.fetchCityByCoords(coordinates);
+    setCity(cityResponse);
   }
 
   //Get coordinates from the User
@@ -56,16 +70,28 @@ export default function App() {
   }
 
   return (
-    <ImageBackground
-      source={background}
-      style={s.img_background}
-      imageStyle={s.img}
-    >
-      <SafeAreaProvider>
-        <SafeAreaView style={s.container}>
-          {isFontLoaded && weather && <Home weather={weather} />}
-        </SafeAreaView>
-      </SafeAreaProvider>
-    </ImageBackground>
+    <NavigationContainer theme={navTheme}>
+      <ImageBackground
+        source={background}
+        style={s.img_background}
+        imageStyle={s.img}
+      >
+        <SafeAreaProvider>
+          <SafeAreaView style={s.container}>
+            {isFontLoaded && weather && (
+              <Stack.Navigator
+                screenOptions={{ headerShown: false }}
+                initialRouteName="Home"
+              >
+                <Stack.Screen name="Home">
+                  {() => <Home weather={weather} city={city} />}
+                </Stack.Screen>
+                <Stack.Screen name="Forecast" component={Forecast} />
+              </Stack.Navigator>
+            )}
+          </SafeAreaView>
+        </SafeAreaProvider>
+      </ImageBackground>
+    </NavigationContainer>
   );
 }
