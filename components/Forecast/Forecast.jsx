@@ -8,7 +8,7 @@ import { getWeatherInterpretation } from "../../utils/meteo-utils.js";
 import { DAYS } from "../../utils/meteo-utils.js";
 export function Forecast() {
   const { params } = useRoute();
-  console.log("1");
+
   const forecastList = (
     <View style={{ marginTop: 50 }}>
       {params.time.map((time, index) => {
