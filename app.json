@@ -42,6 +42,12 @@
         "projectId": "588c418f-819c-4a84-a6e0-32008a6aeb52"
       }
     },
-    "owner": "justin007"
+    "owner": "justin007",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/588c418f-819c-4a84-a6e0-32008a6aeb52"
+    }
   }
 }
