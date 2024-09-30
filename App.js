@@ -1,4 +1,4 @@
-import { ImageBackground, Alert } from "react-native";
+import { ImageBackground, Alert, Platform } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { s } from "./App.style";
 import { Home } from "./components/Home/Home";
@@ -13,6 +13,10 @@ import {
 } from "expo-location";
 import { useFonts } from "expo-font";
 import { Forecast } from "./components/Forecast/Forecast";
+
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
+import Constants from "expo-constants";
 
 const Stack = createNativeStackNavigator();
 const navTheme = {
@@ -31,6 +35,15 @@ export default function App() {
 
   useEffect(() => {
     getUserCoordinates();
+    //App in background or closed and notification is pressed
+    registerForPushNotificationsAsync();
+    Notifications.addNotificationResponseReceivedListener((response) => {
+      console.log(response.notification.request.content);
+    });
+    //App is opened and notification is received
+    // Notifications.addNotificationReceivedListener((notification) => {
+    //   console.log(notification.request.content.data);
+    // });
   }, []);
 
   useEffect(() => {
@@ -39,6 +52,44 @@ export default function App() {
       fetchCityFromCoordinates(coordinates);
     }
   }, [coordinates]);
+
+  async function registerForPushNotificationsAsync() {
+    let token;
+
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync("default", {
+        name: "default",
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: "#FF231F7C",
+      });
+    }
+    if (Device.isDevice) {
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== "granted") {
+        alert("Failed to get permissions for push notifications!");
+        return;
+      }
+
+      token = (
+        await Notifications.getExpoPushTokenAsync({
+          projectId: Constants.expoConfig.extra.eas.projectID,
+        })
+      ).data;
+      //Send token to database
+      console.log("Token: ", token);
+    } else {
+      alert("Must use physical device for Push Notifications");
+    }
+
+    return token;
+  }
 
   async function fetchWeatherFromCoordinates(coordinates) {
     const weatherResponse = await MeteoAPI.fetchWeatherFromCoordinates(
